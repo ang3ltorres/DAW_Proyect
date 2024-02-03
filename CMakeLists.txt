@@ -18,12 +18,11 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
-
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-    audioDecoder
-    projectFile
-    portaudio
+PRIVATE
+audioDecoder
+projectFile
+portaudio
 )
 
-add_dependencies(${PROJECT_NAME} audioDecoder projectFile)
+add_subdirectory(unit_tests)
