@@ -8,17 +8,22 @@ endif ()
 project(daw_project)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(src)
 
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
+
 add_executable(${PROJECT_NAME} main.cpp)
+
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
     audioDecoder
     projectFile
+    portaudio
 )
 
 add_dependencies(${PROJECT_NAME} audioDecoder projectFile)
