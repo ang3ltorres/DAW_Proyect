@@ -29,6 +29,35 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Audio &audio) {
 	return fs;
 }
 
+std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Track &track) {
+
+	// len aux
+	uint16_t len;
+
+	// Get ID
+	fs.read(reinterpret_cast<char*>(&track.id), 2);
+	std::cout << std::format("ID: {:d}\n", track.id);
+
+	// Get name
+	fs.read(reinterpret_cast<char*>(&len), 2);
+	track.name.resize(len);
+	fs.read(track.name.data(), len);
+	std::cout << std::format("TrackName: {}\n", track.name);
+
+	// Get panning
+	fs.read(reinterpret_cast<char*>(&track.panning), 1);
+	std::cout << std::format("Panning: {:d}\n", track.panning);
+
+	// Get volume
+	fs.read(reinterpret_cast<char*>(&track.volume), 8);
+	std::cout << std::format("Volume: {:f}\n\n", track.volume);
+
+	// Get all samples
+	// TODO
+
+	return fs;
+}
+
 ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fileName) {
 
 	// Project
@@ -42,7 +71,7 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 
 	// Compare header
 	static const std::string header{"OPENDAWPROJECT"};
-	std::string headerFile(header.length() , '\0');
+	std::string headerFile(header.length(), '\0');
 	file.read(headerFile.data(), header.length());
 
 	if (header != headerFile)
@@ -68,6 +97,13 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 	file.read(project.name.data(), len);
 	std::cout << project.name << "\n";
 
+	// Get isolated Track (uint16_t)
+	project.soloTrack = nullptr;
+
+	uint16_t isolatedTrackID;
+	file.read(reinterpret_cast<char*>(&isolatedTrackID), 2);
+	std::cout << std::format("Isolated Track ID: {:d}\n", isolatedTrackID);
+
 	// Get total audios
 	file.read(reinterpret_cast<char*>(&len), 2);
 	std::cout << std::format("Total audios: {:d}\n", len);
@@ -79,8 +115,24 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 		project.audios.push_back(audio);
 	}
 
-	// TODO
+	// Get total tracks
+	file.read(reinterpret_cast<char*>(&len), 2);
+	std::cout << std::format("Total tracks: {:d}\n", len);
 
+	// Get each track
+	for (uint16_t i = 0; i < len; i++) {
+
+		Track track;
+		file >> track;
+		project.tracks.push_back(track);
+
+		// Set project isolated track ptr
+		if (isolatedTrackID != 0 && track.id == isolatedTrackID) {
+
+			project.soloTrack = project.tracks.data() + i;
+			std::cout << std::format("Isolated Track name: {:s}\n\n", project.soloTrack->name);
+		}
+	}
 
 	file.close();
 	return project;

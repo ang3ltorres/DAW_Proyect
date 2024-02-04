@@ -34,11 +34,12 @@ namespace ProjectFileFormat {
 
 		uint16_t id;
 		std::string name;
-		uint8_t panning;
-		float volume;
+		int8_t panning;
+		double volume;
 
-		std::vector<Audio> audios;
+		std::vector<Sample> samples;
 	};
+	std::fstream& operator>>(std::fstream &fs, Track &track);
 
 	struct Project {
 
@@ -54,7 +55,10 @@ namespace ProjectFileFormat {
 		// Table with all the audio references
 		std::vector<Audio> audios;
 
-		// If a track is isolated >= 0
+		// Tracks vector
+		std::vector<Track> tracks;
+
+		// If a track is isolated != nullptr
 		Track *soloTrack; // Track Reference
 	};
 
