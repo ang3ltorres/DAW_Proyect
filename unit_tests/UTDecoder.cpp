@@ -1,18 +1,37 @@
 #include <audioDecoder/include/decoder.hpp>
-#include <projectFile/include/project_file.hpp>
 #include <portaudio.h>
 #include <iostream>
 
+#define ANSI_RED    "\x1b[31m"
+#define ANSI_GREEN  "\x1b[32m"
+#define ENDC		"\033[0m"
+#define BOLD		"\033[1m"
+
+class DecoderUnitTest {
+	public:
+		void run ();
+	private:
+		Decoder testDecoder;
+		template <class t>
+		bool assertion (const t &result, const t &expected_result);
+		void printResult (const bool &assertionResult, const std::string &message);
+};
+
+template <class t>
+bool DecoderUnitTest::assertion (const t &result, const t &expected_result) {
+	return result == expected_result;
+}
+
+void DecoderUnitTest::printResult (const bool &result, const std::string &message) {
+	std::cout << "=> Test ";
+}
+
+void DecoderUnitTest::run () {
+
+}
+
 int main() {
-
-	ProjectFileFormat::loadProject("../../project.dawp");
-	PaStreamParameters outputParameters;
-
-	Decoder myDecoder = Decoder();
-
-	myDecoder.changeStr("Hola Mundo");
-
-	std::cout << myDecoder.getStr() << &outputParameters;
-
+	DecoderUnitTest myTester;
+	myTester.run();
 	return 0;
 }

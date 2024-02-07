@@ -28,15 +28,12 @@ else
     $(error Unsupported operating system: $(OS))
 endif
 
-# Compiler options (GCC)
-CC := gcc
-
-.PHONY: all clean make
-
 all: bin
+.PHONY: all
 
 make: build
 	$(MAKE) -C $<
+.PHONY: make
 
 build:
 	cmake -B $@ -S . $(TARGET)
@@ -47,6 +44,13 @@ bin: make
 	$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
 	$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
 
+run_decoder:
+	$(if $(wildcard unit_tests$(SLASH)bin), \
+    @.$(SLASH)unit_tests$(SLASH)bin$(SLASH)UTDecoder$(EXT), \
+    @echo "Compile bin first")
+.PHONY: run_decoder
+
 clean:
 	$(RM) unit_tests$(SLASH)bin
 	$(RM) build
+.PHONY: clean
