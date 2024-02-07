@@ -14,12 +14,16 @@ ifeq ($(OS),Linux)
     MKDIR := mkdir -p
     MV := mv
 	TARGET :=
+    SLASH := /
+    EXT := 
 else ifeq ($(OS),Windows)
     MAKE := mingw32-make
     RM := del /Q /S
     MKDIR := mkdir
     MV := move
-	TARGET := -G "MinGW-Makefiles"
+	TARGET := -G "MinGW Makefiles"
+    SLASH := \\
+    EXT := .exe
 else
     $(error Unsupported operating system: $(OS))
 endif
@@ -34,15 +38,14 @@ all: bin
 make: build
 	$(MAKE) -C $<
 
-build: CMakeLists.txt
-	$(MKDIR) $@
+build:
 	cmake -B $@ -S . $(TARGET)
 
 bin: make
-	$(MKDIR) unit_tests/$@
-	$(MV) build/unit_tests/UTDecoder unit_tests/$@
-	$(MV) build/unit_tests/UTProjectFF unit_tests/$@
+	if not exist unit_tests$(SLASH)$@ $(MKDIR) unit_tests$(SLASH)$@
+	$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
+	$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
 
 clean:
-	$(RM) unit_tests/bin
+	$(RM) unit_tests$(SLASH)bin
 	$(RM) build
