@@ -15,7 +15,7 @@ ifeq ($(OS),Linux)
     MV := mv
 	TARGET :=
     SLASH := /
-    EXT := 
+    EXT :=
 else ifeq ($(OS),Windows)
     MAKE := mingw32-make
     RM := del /Q /S
@@ -42,7 +42,8 @@ build:
 	cmake -B $@ -S . $(TARGET)
 
 bin: make
-	if not exist unit_tests$(SLASH)$@ $(MKDIR) unit_tests$(SLASH)$@
+	$(if $(wildcard unit_tests$(SLASH)$@),,$(MKDIR) unit_tests$(SLASH)$@)
+
 	$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
 	$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
 
