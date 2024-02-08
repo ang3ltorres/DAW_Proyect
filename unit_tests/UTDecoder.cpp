@@ -14,7 +14,7 @@ class DecoderUnitTest {
 		Decoder testDecoder;
 		template <class t>
 		bool assertion (const t &result, const t &expected_result);
-		void printResult (const bool &assertionResult, const std::string &message);
+		void printResult (bool, const std::string &message);
 };
 
 template <class t>
@@ -22,7 +22,7 @@ bool DecoderUnitTest::assertion (const t &result, const t &expected_result) {
 	return result == expected_result;
 }
 
-void DecoderUnitTest::printResult (const bool &result, const std::string &message) {
+void DecoderUnitTest::printResult (bool result, const std::string &message) {
 	std::cout << "=> Test ";
 }
 
