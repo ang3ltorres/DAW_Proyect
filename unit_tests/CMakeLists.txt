@@ -10,6 +10,7 @@ function (link RUN_NAME)
     include_directories(${RUN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
     include_directories(${RUN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/audioDecoder/include)
     include_directories(${RUN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/projectFile/include)
+    include_directories(${RUN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
     target_link_libraries(${RUN_NAME}
                         PRIVATE
