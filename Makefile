@@ -31,18 +31,24 @@ endif
 all: bin
 .PHONY: all
 
-make: build
+compile: build
 	$(MAKE) -C $<
-.PHONY: make
+.PHONY: compile
 
 build:
 	cmake -B $@ -S . $(TARGET)
 
-bin: make
-	$(if $(wildcard unit_tests$(SLASH)$@),,$(MKDIR) unit_tests$(SLASH)$@)
+bin: compile
+	@echo "Setting bin"
+	@$(if $(wildcard unit_tests$(SLASH)$@),,$(MKDIR) unit_tests$(SLASH)$@)
 
-	$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
-	$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
+	@$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
+	@$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
+
+compile_UT: build
+	$(MAKE) -C $</unit_tests
+	@$(MAKE) bin
+.PHONY: compile_UT
 
 run_decoder:
 	$(if $(wildcard unit_tests$(SLASH)bin), \
