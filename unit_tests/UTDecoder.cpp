@@ -1,8 +1,7 @@
 #include <portaudio.h>
 #include <iostream>
-#include <type_traits>
 
-#include <format.hpp>
+#include <UT_format.hpp>
 #include <audioDecoder/include/wav_decoder.hpp>
 
 class DecoderUnitTest
@@ -30,7 +29,8 @@ void DecoderUnitTest::printResult (bool result, const std::string &message)
 
 void DecoderUnitTest::run()
 {
-	// testDecoder.loadFile ("./test_files/sample.wav");
+	std::cout << color::output("Testing .wav info extraction", color::BOLD) << "\n";
+	testDecoder.loadFile ("./test_files/sample.wav");
 }
 
 int main()
