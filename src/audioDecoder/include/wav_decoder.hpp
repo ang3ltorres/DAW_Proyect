@@ -6,12 +6,15 @@
 #include <vector>
 #include <algorithm>
 
+//TODO: Refactor this to get rid of C functions and instead use std C++
 #include <sys/stat.h>
+#include <string.h>
 
 class wavDecoder {
     public:
         wavDecoder();
         wavDecoder(const std::string &);
+        ~wavDecoder ();
         //Public methods
 
         //Loads file and extracts file headers
@@ -33,8 +36,11 @@ class wavDecoder {
             NO_ERROR = 0,
             NOT_WAV_FILE,
             NOT_RIFF,
+            NOT_WAVE,
+            NOT_FMT,
             FAIL_OPEN,
-            FAIL_READ
+            FAIL_READ,
+            ALLOC_FAILED
         };
     private:
         struct {
@@ -52,7 +58,7 @@ class wavDecoder {
         /*
             Private methods
         */
-       void _readHeader (int &);
+       unsigned int _readRiff (int &, std::ifstream &);
        void _read_fmt (int &);
        bool _hasSuffix () const;
        inline bool _isRIFF (const std::string &) const;
@@ -60,6 +66,9 @@ class wavDecoder {
        /*
             Private constants
        */
-        const std::string _suffix = ".wav";
+        const std::string SUFFIX = ".wav";
         const std::string RIFF_ID = "RIFF";
+        const std::string WAVE_ID = "WAVE";
+        const std::string FMT_ID = "fmt ";
+        const std::string DATA_ID = "data";
 };

@@ -12,9 +12,34 @@ int wavDecoder::loadFile(const std::string &filePath)
 {
     this -> filePath = filePath;
     int rc = _hasSuffix() ? Error::NO_ERROR : Error::NOT_WAV_FILE;
+    int file_size = 0;
+    std::ifstream wavFileStrm;
     if (!rc) {
-        _readHeader(rc);
+        wavFileStrm = std::ifstream(this -> filePath, std::ios::binary);
+        file_size = _readRiff(rc, wavFileStrm);
     }
+
+    if (!rc) {
+        buffer = new char[file_size];
+        if (buffer == nullptr) rc = Error::ALLOC_FAILED;
+    }
+
+    if (!rc) {
+        if (!wavFileStrm.read(buffer, file_size + 1)) {
+
+            rc = Error::FAIL_READ;
+        }
+        else {
+            wavFileStrm.close();
+        }
+    }
+
+    if (!rc) {
+        rc = !strncmp(buffer, WAVE_ID.c_str(), CHUNK_ID_SIZE) ? Error::NO_ERROR : Error::NOT_WAVE;
+    }
+
+    std::cout << rc;
+
     if (!rc) {
         _read_fmt(rc);
     }
@@ -50,40 +75,42 @@ int *wavDecoder::getRawData () const
 bool wavDecoder::_hasSuffix () const
 {
     bool hasIt;
-    if (_suffix.size() >= filePath.size()) hasIt = false;
-    if (hasIt) hasIt = std::equal(_suffix.rbegin(), _suffix.rend(), filePath.rbegin());
+    if (SUFFIX.size() >= filePath.size()) hasIt = false;
+    if (hasIt) hasIt = std::equal(SUFFIX.rbegin(), SUFFIX.rend(), filePath.rbegin());
 
     return hasIt;
 }
 
-void wavDecoder::_readHeader(int &rc)
+unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
 {
-    std::ifstream wavFileStrm(this -> filePath, std::ios::binary);
-    struct stat sb;
+
+    unsigned int file_size = 0;
     if (!wavFileStrm.is_open()) {
         rc = Error::FAIL_OPEN;
     } else {
-        this -> buffer = new char[RIFF_HEADER];
-        if (wavFileStrm.read(buffer, RIFF_HEADER)) {
-            _isRIFF(std::string(buffer, CHUNK_ID_SIZE)) ? rc = Error::NO_ERROR : Error::NOT_RIFF;
-        } else {
-            delete [] this -> buffer;
-            rc = Error::FAIL_READ;
+        buffer = new char[RIFF_HEADER];
+        if (buffer == nullptr) rc = Error::ALLOC_FAILED;
+
+        if (!rc) {
+            if (wavFileStrm.read(buffer, RIFF_HEADER)) {
+                _isRIFF(std::string(buffer, CHUNK_ID_SIZE)) ? rc = Error::NO_ERROR : Error::NOT_RIFF;
+            } else {
+                delete [] buffer;
+                rc = Error::FAIL_READ;
+            }
         }
     }
     if (!rc) {
-        unsigned int file_size =  _getFileSize(this -> buffer + CHUNK_ID_SIZE);
-        delete[] this -> buffer;
-
-        this -> buffer = new char[file_size];
-        if (wavFileStrm.read(buffer, file_size)) {
-            delete [] this -> buffer;
-            rc = Error::FAIL_READ;
-        }
+        file_size =  _getFileSize(this -> buffer + CHUNK_ID_SIZE);
+        delete[] buffer;
     }
+    return file_size;
 }
 
+void wavDecoder::_read_fmt (int &rc)
+{
 
+}
 
 inline bool wavDecoder::_isRIFF(const std::string &riff_str) const
 {
@@ -93,4 +120,11 @@ inline bool wavDecoder::_isRIFF(const std::string &riff_str) const
 inline unsigned int wavDecoder::_getFileSize(char *file_size)
 {
     return *(unsigned int *)(file_size);
+}
+
+wavDecoder::~wavDecoder()
+{
+    if (buffer != nullptr) {
+        delete [] buffer;
+    }
 }

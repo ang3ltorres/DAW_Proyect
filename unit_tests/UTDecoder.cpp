@@ -32,8 +32,8 @@ void DecoderUnitTest::printResult (bool result, const std::string &message)
 void DecoderUnitTest::run()
 {
 	bool result = false;
-	std::cout << color::output("Testing file header info", color::BOLD) << "---------\n";
 	testDecoder.loadFile (TEST_FILEPATH);
+	std::cout << color::output("Testing file header info", color::BOLD) << "---------\n";
 
 	printResult(assertion(testDecoder.PCM_value(), (unsigned int)1),
 				"Getting PCM value");
