@@ -4,7 +4,7 @@
 #include <UT_format.hpp>
 #include <audioDecoder/include/wav_decoder.hpp>
 
-#define TEST_FILEPATH "./test_files/sample2.wav"
+#define TEST_FILEPATH "./unit_tests/test_files/audioFile/ex_sample.wav"
 
 class DecoderUnitTest
 {
@@ -38,7 +38,7 @@ void DecoderUnitTest::run()
 	printResult(assertion(testDecoder.PCM_value(), (unsigned int)1),
 				"Getting PCM value");
 
-	printResult(assertion(testDecoder.getSampleRate(), (size_t) 44100),
+	printResult(assertion(testDecoder.getSampleRate(), (size_t)44100),
 		        "Getting sample rate");
 
 	printResult(assertion(testDecoder.getChannelCount(), (unsigned short)2),

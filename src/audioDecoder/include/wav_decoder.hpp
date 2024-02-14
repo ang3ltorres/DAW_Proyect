@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <sys/stat.h>
+
 class wavDecoder {
     public:
         wavDecoder();
@@ -19,8 +21,7 @@ class wavDecoder {
         unsigned short getChannelCount() const;
         //Returns sampleRate in Hz
         size_t getSampleRate () const;
-        //Returns if is PCM, else, it may have a form of compression that needs
-        //it's way to handle it in the player
+        //Returns PCM value, if not one, it has some form of compression
         unsigned int PCM_value () const;
         //Returns a pointer to a dinamycally allocated C type array, that
         //contains the raw audio Data in PCM format.
@@ -28,19 +29,37 @@ class wavDecoder {
         //the channel is larger than the channel count.
         int *getChannelData (const size_t &) const;
         int *getRawData () const;
+        enum Error {
+            NO_ERROR = 0,
+            NOT_WAV_FILE,
+            NOT_RIFF,
+            FAIL_OPEN,
+            FAIL_READ
+        };
     private:
+        struct {
+            const std::streamsize RIFF_HEADER = 8;
+            const std::streamsize CHUNK_ID_SIZE = 4;
+            const  std::streamsize CHUNK_SZ_SIZE = 4;
+        };
         unsigned short channelCount;
-        size_t sampleRate;
         unsigned int PCM;
-        std::string filePath;
-        const std::string _suffix = ".wav";
-        //Im thinking in leave this with a C array, because the pointer
-        //May be to difficult to handle with an std::array
-        std::vector<int *> channelData;
+        size_t sampleRate;
         int *rawData;
+        char *buffer;
+        std::string filePath;
+        std::vector<int *> channelData;
         /*
             Private methods
         */
+       void _readHeader (int &);
+       void _read_fmt (int &);
        bool _hasSuffix () const;
-       int _readHeader ();
+       inline bool _isRIFF (const std::string &) const;
+       inline unsigned int _getFileSize (char *);
+       /*
+            Private constants
+       */
+        const std::string _suffix = ".wav";
+        const std::string RIFF_ID = "RIFF";
 };
