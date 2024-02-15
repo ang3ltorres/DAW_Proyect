@@ -6,10 +6,6 @@
 #include <vector>
 #include <algorithm>
 
-//TODO: Refactor this to get rid of C functions and instead use std C++
-#include <sys/stat.h>
-#include <string.h>
-
 class wavDecoder {
     public:
         wavDecoder();
@@ -59,9 +55,9 @@ class wavDecoder {
             Private methods
         */
        unsigned int _readRiff (int &, std::ifstream &);
-       void _read_fmt (int &);
+       void _read_fmt (int &, int &);
        bool _hasSuffix () const;
-       inline bool _isRIFF (const std::string &) const;
+       static inline bool _isID (const std::string &, const std::string &);
        inline unsigned int _getFileSize (char *);
        inline void _cleanBuffer ();
        /*

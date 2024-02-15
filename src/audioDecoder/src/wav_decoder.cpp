@@ -35,11 +35,12 @@ int wavDecoder::loadFile(const std::string &filePath)
     }
 
     if (!rc) {
-        rc = !strncmp(buffer, WAVE_ID.c_str(), CHUNK_ID_SIZE) ? Error::NO_ERROR : Error::NOT_WAVE;
+        rc = _isID(WAVE_ID, std::string(buffer, CHUNK_ID_SIZE)) ? Error::NO_ERROR : Error::NOT_WAVE;
+        file_size -= CHUNK_ID_SIZE;
     }
 
     if (!rc) {
-        _read_fmt(rc);
+        _read_fmt(rc, file_size);
     }
     return rc;
 }
@@ -91,7 +92,7 @@ unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
 
         if (!rc) {
             if (wavFileStrm.read(buffer, RIFF_HEADER)) {
-                _isRIFF(std::string(buffer, CHUNK_ID_SIZE)) ? rc = Error::NO_ERROR : Error::NOT_RIFF;
+                _isID(RIFF_ID, std::string(buffer, CHUNK_ID_SIZE)) ? rc = Error::NO_ERROR : Error::NOT_RIFF;
             } else {
                 _cleanBuffer();
                 rc = Error::FAIL_READ;
@@ -105,14 +106,22 @@ unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
     return file_size;
 }
 
-void wavDecoder::_read_fmt (int &rc)
+void wavDecoder::_read_fmt (int &rc, int &file_size)
 {
+    char *tmp_buffer = buffer;
+    buffer = new char[file_size];
+    char *str_begin = tmp_buffer + CHUNK_ID_SIZE;
+    char *str_end = str_begin + file_size;
+
+    std::copy (str_begin, str_end, buffer);
+    delete [] tmp_buffer;
+
 
 }
 
-inline bool wavDecoder::_isRIFF(const std::string &riff_str) const
+inline bool wavDecoder::_isID (const std::string &id, const std::string &str)
 {
-    return RIFF_ID == riff_str;
+    return id == str;
 }
 
 inline unsigned int wavDecoder::_getFileSize(char *file_size)
