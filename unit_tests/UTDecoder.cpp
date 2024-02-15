@@ -1,6 +1,7 @@
-#include <portaudio.h>
 #include <iostream>
+#include <typeinfo>
 
+#include <portaudio.h>
 #include <UT_format.hpp>
 #include <audioDecoder/include/wav_decoder.hpp>
 
@@ -25,7 +26,7 @@ bool DecoderUnitTest::assertion(const t &result, const t &expected_result)
 
 void DecoderUnitTest::printResult (bool result, const std::string &message)
 {
-	std::string result_str = result ? color::output("OK!", color::RED):  color::output("FAILED!", color::RED);
+	std::string result_str = result ? color::output("OK!", color::GREEN):  color::output("FAILED!", color::RED);
 	std::cout << "=> Test [" << color::BOLD << message << color::ENDC << "] " << result_str << " \n";
 }
 
@@ -35,14 +36,15 @@ void DecoderUnitTest::run()
 	testDecoder.loadFile (TEST_FILEPATH);
 	std::cout << color::output("Testing file header info", color::BOLD) << "---------\n";
 
-	printResult(assertion(testDecoder.PCM_value(), (unsigned int)1),
+	printResult(assertion(testDecoder.PCM_value(), (decltype(testDecoder.PCM_value()))1),
 				"Getting PCM value");
 
-	printResult(assertion(testDecoder.getSampleRate(), (size_t)44100),
+	printResult(assertion(testDecoder.getChannelCount(), (decltype(testDecoder.getChannelCount()))2),
+				"Getting channel count");
+
+	printResult(assertion(testDecoder.getSampleRate(), (decltype(testDecoder.getSampleRate()))44100),
 		        "Getting sample rate");
 
-	printResult(assertion(testDecoder.getChannelCount(), (unsigned short)2),
-				"Getting channel count");
 
 	std::cout << color::output("Testing file raw data", color::BOLD) << "---------\n";
 }

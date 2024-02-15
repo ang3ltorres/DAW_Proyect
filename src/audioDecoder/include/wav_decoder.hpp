@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <typeinfo>
 
 class wavDecoder {
     public:
@@ -19,9 +20,9 @@ class wavDecoder {
         //Returns channel count
         unsigned short getChannelCount() const;
         //Returns sampleRate in Hz
-        size_t getSampleRate () const;
+        unsigned int getSampleRate () const;
         //Returns PCM value, if not one, it has some form of compression
-        unsigned int PCM_value () const;
+        unsigned short PCM_value () const;
         //Returns a pointer to a dinamycally allocated C type array, that
         //contains the raw audio Data in PCM format.
         //receives the channel and returns nullptr if channel if
@@ -45,8 +46,8 @@ class wavDecoder {
             const  std::streamsize CHUNK_SZ_SIZE = 4;
         };
         unsigned short channelCount;
-        unsigned int PCM;
-        size_t sampleRate;
+        unsigned short PCM;
+        unsigned int sampleRate;
         int *rawData;
         char *buffer;
         std::string filePath;
@@ -54,13 +55,16 @@ class wavDecoder {
         /*
             Private methods
         */
-       unsigned int _readRiff (int &, std::ifstream &);
-       void _read_fmt (int &, int &);
-       bool _hasSuffix () const;
-       static inline bool _isID (const std::string &, const std::string &);
-       inline unsigned int _getFileSize (char *);
-       inline void _cleanBuffer ();
-       void _offsetBuffer(const size_t &,const int &, int &);
+        unsigned int _readRiff (int &, std::ifstream &);
+        void _read_fmt (int &,unsigned int &);
+        bool _hasSuffix () const;
+        static inline bool _isID (const std::string &, const std::string &);
+    //     inline unsigned int _getUint (char *);
+        template <typename t>
+        inline t _getTypeVal(char *);
+        inline void _cleanBuffer ();
+        void _offsetBuffer(const size_t &,unsigned int &, int &);
+        void _offsetCharray(char *&, const size_t &, unsigned int &, int &);
        /*
             Private constants
        */
