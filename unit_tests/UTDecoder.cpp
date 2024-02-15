@@ -45,7 +45,6 @@ void DecoderUnitTest::run()
 				"Getting channel count");
 
 	std::cout << color::output("Testing file raw data", color::BOLD) << "---------\n";
-	//TODO: create bin file with test raw data from ex_sample file
 }
 
 int main()

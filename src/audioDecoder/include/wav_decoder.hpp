@@ -63,6 +63,7 @@ class wavDecoder {
        bool _hasSuffix () const;
        inline bool _isRIFF (const std::string &) const;
        inline unsigned int _getFileSize (char *);
+       inline void _cleanBuffer ();
        /*
             Private constants
        */

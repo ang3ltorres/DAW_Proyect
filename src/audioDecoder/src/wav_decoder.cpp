@@ -25,8 +25,8 @@ int wavDecoder::loadFile(const std::string &filePath)
     }
 
     if (!rc) {
-        if (!wavFileStrm.read(buffer, file_size + 1)) {
-
+        if (!wavFileStrm.read(buffer, file_size)) {
+            delete [] this -> buffer;
             rc = Error::FAIL_READ;
         }
         else {
@@ -37,8 +37,6 @@ int wavDecoder::loadFile(const std::string &filePath)
     if (!rc) {
         rc = !strncmp(buffer, WAVE_ID.c_str(), CHUNK_ID_SIZE) ? Error::NO_ERROR : Error::NOT_WAVE;
     }
-
-    std::cout << rc;
 
     if (!rc) {
         _read_fmt(rc);
@@ -95,14 +93,14 @@ unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
             if (wavFileStrm.read(buffer, RIFF_HEADER)) {
                 _isRIFF(std::string(buffer, CHUNK_ID_SIZE)) ? rc = Error::NO_ERROR : Error::NOT_RIFF;
             } else {
-                delete [] buffer;
+                _cleanBuffer();
                 rc = Error::FAIL_READ;
             }
         }
     }
     if (!rc) {
         file_size =  _getFileSize(this -> buffer + CHUNK_ID_SIZE);
-        delete[] buffer;
+        _cleanBuffer();
     }
     return file_size;
 }
@@ -122,9 +120,13 @@ inline unsigned int wavDecoder::_getFileSize(char *file_size)
     return *(unsigned int *)(file_size);
 }
 
+inline void wavDecoder::_cleanBuffer()
+{
+    delete [] buffer;
+    buffer = nullptr;
+}
+
 wavDecoder::~wavDecoder()
 {
-    if (buffer != nullptr) {
-        delete [] buffer;
-    }
+    _cleanBuffer();
 }
