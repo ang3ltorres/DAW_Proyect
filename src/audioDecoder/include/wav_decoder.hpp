@@ -60,6 +60,7 @@ class wavDecoder {
        static inline bool _isID (const std::string &, const std::string &);
        inline unsigned int _getFileSize (char *);
        inline void _cleanBuffer ();
+       void _offsetBuffer(const size_t &,const int &, int &);
        /*
             Private constants
        */

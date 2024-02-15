@@ -108,15 +108,24 @@ unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
 
 void wavDecoder::_read_fmt (int &rc, int &file_size)
 {
+    if (!rc) {
+        _offsetBuffer(CHUNK_ID_SIZE, file_size, rc);
+    }
+}
+
+void wavDecoder::_offsetBuffer(const size_t &offset,const int &file_size, int &rc)
+{
     char *tmp_buffer = buffer;
     buffer = new char[file_size];
-    char *str_begin = tmp_buffer + CHUNK_ID_SIZE;
-    char *str_end = str_begin + file_size;
+    if (buffer == nullptr) rc = Error::ALLOC_FAILED;
 
-    std::copy (str_begin, str_end, buffer);
+    if (!rc) {
+        char *str_begin = tmp_buffer + offset;
+        char *str_end = str_begin + file_size;
+
+        std::copy (str_begin, str_end, buffer);
+    }
     delete [] tmp_buffer;
-
-
 }
 
 inline bool wavDecoder::_isID (const std::string &id, const std::string &str)
