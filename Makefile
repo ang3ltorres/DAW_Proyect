@@ -38,23 +38,33 @@ compile: build
 build:
 	cmake -B $@ -S . $(TARGET)
 
+lib:
+    export LD_LIBRARY_PATH=.$(SLASH)$@$(SLASH)
+
 bin: compile
 	@echo "Setting bin"
 	@$(if $(wildcard unit_tests$(SLASH)$@),,$(MKDIR) unit_tests$(SLASH)$@)
 
-	@$(MV) build$(SLASH)unit_tests$(SLASH)UTDecoder$(EXT) unit_tests$(SLASH)$@
-	@$(MV) build$(SLASH)unit_tests$(SLASH)UTProjectFF$(EXT) unit_tests$(SLASH)$@
+	@$(MV) build$(SLASH)unit_tests$(SLASH)UT*$(EXT) unit_tests$(SLASH)$@
 
 compile_UT: build
 	$(MAKE) -C $</unit_tests
 	@$(MAKE) bin
 .PHONY: compile_UT
 
-run_decoder:
+run_decoder: lib
+
 	$(if $(wildcard unit_tests$(SLASH)bin), \
     @.$(SLASH)unit_tests$(SLASH)bin$(SLASH)UTDecoder$(EXT), \
     @echo "Compile bin first")
 .PHONY: run_decoder
+
+UTportaudioex: lib
+
+	$(if $(wildcard unit_tests$(SLASH)bin), \
+    @.$(SLASH)unit_tests$(SLASH)bin$(SLASH)UTportaudioex$(EXT), \
+    @echo "Compile bin first")
+.PHONY: UTportaudioex
 
 clean:
 	$(RM) unit_tests$(SLASH)bin

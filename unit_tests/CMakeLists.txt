@@ -2,6 +2,7 @@
 
 add_executable(UTDecoder UTDecoder.cpp)
 add_executable(UTProjectFF UTProjectFF.cpp)
+add_executable(UTportaudioex UTportaudioex.cpp)
 
 
 function (link RUN_NAME)
@@ -23,6 +24,7 @@ endfunction()
 
 link (UTDecoder)
 link (UTProjectFF)
+link (UTportaudioex)
 
 
 

@@ -9,7 +9,8 @@ wavDecoder::wavDecoder() :
     buffer(nullptr),
     blockAlign(0),
     bitsPerSample(0),
-    byteRate(0)
+    byteRate(0),
+    rawDataSize(0)
     {}
 
 int wavDecoder::loadFile(const std::string &filePath)
@@ -57,8 +58,14 @@ int wavDecoder::loadFile(const std::string &filePath)
             rc = Error::NOT_DATA;
         }
     }
+
     if (!rc) {
-        rawData = buffer;
+        rawDataSize = _getTypeVal<decltype(rawDataSize)>(buffer);
+        _offsetBuffer(CHUNK_SZ_SIZE, file_size, rc);
+    }
+
+    if (!rc) {
+        rawData = (decltype(rawData))buffer;
         buffer = nullptr;
     }
     return rc;
@@ -84,9 +91,14 @@ int *wavDecoder::getChannelData (const size_t &channel) const
     return nullptr;
 }
 
-char *wavDecoder::getRawData () const
+unsigned short *wavDecoder::getRawData () const
 {
     return rawData;
+}
+
+unsigned int wavDecoder::getRawDataSize() const
+{
+    return rawDataSize;
 }
 
 unsigned short wavDecoder::getBlockAlign () const
@@ -214,7 +226,7 @@ void wavDecoder::_offsetBuffer(const size_t &offset,unsigned int &file_size, int
     _offsetCharray(buffer, offset, file_size, rc);
 }
 
-inline bool wavDecoder::_isID (const std::string &id, const std::string &str)
+inline bool wavDecoder::_isID(const std::string &id, const std::string &str)
 {
     return id == str;
 }
@@ -231,7 +243,14 @@ inline void wavDecoder::_cleanBuffer()
     buffer = nullptr;
 }
 
+inline void wavDecoder::_cleanRawData()
+{
+    delete []rawData;
+    rawData = nullptr;
+}
+
 wavDecoder::~wavDecoder()
 {
     _cleanBuffer();
+    _cleanRawData();
 }

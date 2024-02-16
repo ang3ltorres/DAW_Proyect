@@ -31,7 +31,8 @@ class wavDecoder {
         unsigned short getBitsPerSample () const;
         unsigned int getByteRate () const;
         int *getChannelData (const size_t &) const;
-        char *getRawData () const;
+        unsigned short *getRawData () const;
+        unsigned int getRawDataSize () const;
         enum Error {
             NO_ERROR = 0,
             NOT_WAV_FILE,
@@ -58,7 +59,8 @@ class wavDecoder {
         unsigned int byteRate;
 
 
-        char *rawData;
+        unsigned short *rawData;
+        unsigned int rawDataSize;
         char *buffer;
         std::string filePath;
         // std::vector<char *> channelData;
@@ -72,7 +74,8 @@ class wavDecoder {
     //     inline unsigned int _getUint (char *);
         template <typename t>
         inline t _getTypeVal(char *);
-        inline void _cleanBuffer ();
+        inline void _cleanBuffer();
+        inline void _cleanRawData();
         void _offsetBuffer(const size_t &,unsigned int &, int &);
         void _offsetCharray(char *&, const size_t &, unsigned int &, int &);
        /*
