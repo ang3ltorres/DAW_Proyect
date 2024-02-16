@@ -29,14 +29,16 @@ class wavDecoder {
         //the channel is larger than the channel count.
         unsigned short getBlockAlign () const;
         unsigned short getBitsPerSample () const;
+        unsigned int getByteRate () const;
         int *getChannelData (const size_t &) const;
-        int *getRawData () const;
+        char *getRawData () const;
         enum Error {
             NO_ERROR = 0,
             NOT_WAV_FILE,
             NOT_RIFF,
             NOT_WAVE,
             NOT_FMT,
+            NOT_DATA,
             FAIL_OPEN,
             FAIL_READ,
             ALLOC_FAILED
@@ -56,10 +58,10 @@ class wavDecoder {
         unsigned int byteRate;
 
 
-        int *rawData;
+        char *rawData;
         char *buffer;
         std::string filePath;
-        std::vector<int *> channelData;
+        // std::vector<char *> channelData;
         /*
             Private methods
         */

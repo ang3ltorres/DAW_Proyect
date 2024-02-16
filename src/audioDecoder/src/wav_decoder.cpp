@@ -49,6 +49,18 @@ int wavDecoder::loadFile(const std::string &filePath)
     if (!rc) {
         _read_fmt(rc, file_size);
     }
+
+    if (!rc) {
+        if (_isID(DATA_ID, std::string(buffer, CHUNK_ID_SIZE))) {
+            _offsetBuffer(CHUNK_ID_SIZE, file_size, rc);
+        } else {
+            rc = Error::NOT_DATA;
+        }
+    }
+    if (!rc) {
+        rawData = buffer;
+        buffer = nullptr;
+    }
     return rc;
 }
 
@@ -72,7 +84,7 @@ int *wavDecoder::getChannelData (const size_t &channel) const
     return nullptr;
 }
 
-int *wavDecoder::getRawData () const
+char *wavDecoder::getRawData () const
 {
     return rawData;
 }
@@ -85,6 +97,11 @@ unsigned short wavDecoder::getBlockAlign () const
 unsigned short wavDecoder::getBitsPerSample () const
 {
     return bitsPerSample;
+}
+
+unsigned int wavDecoder::getByteRate () const
+{
+    return byteRate;
 }
 
 //Private methods
@@ -108,7 +125,7 @@ unsigned int wavDecoder::_readRiff(int &rc, std::ifstream &wavFileStrm)
 
         if (!rc) {
             if (wavFileStrm.read(buffer, RIFF_HEADER)) {
-                _isID(RIFF_ID, std::string(buffer, CHUNK_ID_SIZE)) ? Error::NO_ERROR : Error::NOT_RIFF;
+                rc = _isID(RIFF_ID, std::string(buffer, CHUNK_ID_SIZE)) ? Error::NO_ERROR : Error::NOT_RIFF;
             } else {
                 _cleanBuffer();
                 rc = Error::FAIL_READ;
@@ -172,9 +189,8 @@ void wavDecoder::_read_fmt(int &rc, unsigned int &file_size)
             byteRate = _getTypeVal<decltype(byteRate)>(fmt_subchunk);
             blockAlign = _getTypeVal<decltype(blockAlign)>(fmt_subchunk + sizeof(byteRate));
             bitsPerSample = _getTypeVal<decltype(bitsPerSample)>(fmt_subchunk + sizeof(byteRate) + sizeof(blockAlign));
-
-            std::cout << blockAlign << " " << bitsPerSample << " " << byteRate <<"\n";
         }
+        delete [] fmt_subchunk;
     }
 }
 
