@@ -27,6 +27,8 @@ class wavDecoder {
         //contains the raw audio Data in PCM format.
         //receives the channel and returns nullptr if channel if
         //the channel is larger than the channel count.
+        unsigned short getBlockAlign () const;
+        unsigned short getBitsPerSample () const;
         int *getChannelData (const size_t &) const;
         int *getRawData () const;
         enum Error {
@@ -45,9 +47,15 @@ class wavDecoder {
             const std::streamsize CHUNK_ID_SIZE = 4;
             const  std::streamsize CHUNK_SZ_SIZE = 4;
         };
+
         unsigned short channelCount;
         unsigned short PCM;
+        unsigned short bitsPerSample;
+        unsigned short blockAlign;
         unsigned int sampleRate;
+        unsigned int byteRate;
+
+
         int *rawData;
         char *buffer;
         std::string filePath;

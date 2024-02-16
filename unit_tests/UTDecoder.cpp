@@ -45,6 +45,12 @@ void DecoderUnitTest::run()
 	printResult(assertion(testDecoder.getSampleRate(), (decltype(testDecoder.getSampleRate()))44100),
 		        "Getting sample rate");
 
+	printResult(assertion(testDecoder.getBlockAlign(), (decltype(testDecoder.getBlockAlign()))44100),
+		        "Getting sample rate");
+
+	printResult(assertion(testDecoder.getBitsPerSample(), (decltype(testDecoder.getBitsPerSample()))44100),
+		        "Getting sample rate");
+
 
 	std::cout << color::output("Testing file raw data", color::BOLD) << "---------\n";
 }
