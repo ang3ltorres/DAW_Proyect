@@ -101,64 +101,6 @@ void DecoderUnitTest::run()
 
 	printResult(assertion(testDecoder.getRawDataSize(), (decltype(testDecoder.getRawDataSize()))13641600),
 			    "Getting get raw data byte size");
-
-	PaError err;
-
-	err = Pa_Initialize();
-	PaStream *stream;
-
-	int frames_per_buffer = testDecoder.getByteRate() / testDecoder.getSampleRate();
-
-	PaStreamParameters outputParameters;
-	outputParameters.device = Pa_GetDefaultOutputDevice();
-    if (outputParameters.device == paNoDevice) {
-        fprintf(stderr,"Error: No default output device\n");
-        Pa_Terminate();
-    }
-
-	std::cout << outputParameters.device << "\n";
-
-    err = Pa_OpenDefaultStream(&stream, 0, testDecoder.getChannelCount(), paInt16, testDecoder.getSampleRate(),
-                               frames_per_buffer, audioCallback, &testDecoder);
-	std::cout << err << "\n";
-    if (err != paNoError)
-    {
-        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
-        Pa_Terminate();
-		exit (1);
-    }
-
-    // Start the stream
-    err = Pa_StartStream(stream);
-    if (err != paNoError)
-    {
-        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
-        Pa_CloseStream(stream);
-        Pa_Terminate();
-		exit(2);
-    }
-
-    // Wait for stream to finish (audio playback completes)
-    while (Pa_IsStreamActive(stream))
-    {
-        Pa_Sleep(100);
-    }
-
-    // Stop and close the stream
-    err = Pa_StopStream(stream);
-    if (err != paNoError)
-    {
-        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
-    }
-
-    err = Pa_CloseStream(stream);
-    if (err != paNoError)
-    {
-        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
-    }
-
-    // Terminate PortAudio
-    Pa_Terminate();
 }
 
 int main()
