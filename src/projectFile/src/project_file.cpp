@@ -1,11 +1,11 @@
 #include <project_file.hpp>
-#include <iostream>
+#include <sstream>
 #include <fstream>
 #include <format>
 
 static ProjectFileFormat::Project project;
 
-std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Date &date) {
+std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Date &date) {
 
 	fs.read(reinterpret_cast<char*>(&date.day), sizeof(uint8_t));
 	fs.read(reinterpret_cast<char*>(&date.month), sizeof(uint8_t));
@@ -13,7 +13,7 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Date &date) {
 	return fs;
 }
 
-std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Audio &audio) {
+std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Audio &audio) {
 
 	// len aux
 	uint16_t len;
@@ -31,7 +31,7 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Audio &audio) {
 	return fs;
 }
 
-std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Sample &sample) {
+std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Sample &sample) {
 
 	// len aux
 	uint16_t len;
@@ -61,7 +61,7 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Sample &sample) {
 	return fs;
 }
 
-std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Track &track) {
+std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Track &track) {
 
 	// len aux
 	uint16_t len;
@@ -105,62 +105,65 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 
 	// Open file
 	std::fstream file{fileName, std::ios::binary | std::ios::in};
+	std::stringstream fileBuffer;
+	fileBuffer << file.rdbuf();
+	file.close();
 
 	// Compare header
 	static const std::string header{"OPENDAWPROJECT"};
 	std::string headerFile(header.length(), '\0');
-	file.read(headerFile.data(), header.length());
+	fileBuffer.read(headerFile.data(), header.length());
 
 	if (header != headerFile)
 		std::cout << "Error!!\n";
 
 	// Get version
-	file.read(reinterpret_cast<char*>(&project.major), sizeof(uint8_t));
-	file.read(reinterpret_cast<char*>(&project.minor), sizeof(uint8_t));
-	file.read(reinterpret_cast<char*>(&project.patch), sizeof(uint8_t));
+	fileBuffer.read(reinterpret_cast<char*>(&project.major), sizeof(uint8_t));
+	fileBuffer.read(reinterpret_cast<char*>(&project.minor), sizeof(uint8_t));
+	fileBuffer.read(reinterpret_cast<char*>(&project.patch), sizeof(uint8_t));
 	std::cout << std::format("{:d}.{:d}.{:d}\n", project.major, project.minor, project.patch);
 
 	// Get creation date
-	file >> project.creationDate;
+	fileBuffer >> project.creationDate;
 	std::cout << std::format("Day: {:d}\nMonth: {:d}\nYear: {:d}\n\n", project.creationDate.day, project.creationDate.month, project.creationDate.year);
 
 	// Get last saved date
-	file >> project.lastSavedDate;
+	fileBuffer >> project.lastSavedDate;
 	std::cout << std::format("Day: {:d}\nMonth: {:d}\nYear: {:d}\n\n", project.lastSavedDate.day, project.lastSavedDate.month, project.lastSavedDate.year);
 
 	// Get project name
-	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	fileBuffer.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	project.name.resize(len);
-	file.read(project.name.data(), len);
+	fileBuffer.read(project.name.data(), len);
 	std::cout << project.name << "\n";
 
 	// Get isolated Track (uint16_t)
 	project.soloTrack = nullptr;
 
 	uint16_t isolatedTrackID;
-	file.read(reinterpret_cast<char*>(&isolatedTrackID), sizeof(uint16_t));
+	fileBuffer.read(reinterpret_cast<char*>(&isolatedTrackID), sizeof(uint16_t));
 	std::cout << std::format("Isolated Track ID: {:d}\n", isolatedTrackID);
 
 	// Get total audios
-	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	fileBuffer.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total audios: {:d}\n", len);
 
 	for (uint16_t i = 0; i < len; i++) {
 
 		Audio audio;
-		file >> audio;
+		fileBuffer >> audio;
 		project.audios.push_back(audio);
 	}
 
 	// Get total tracks
-	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	fileBuffer.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total tracks: {:d}\n", len);
 
 	// Get each track
 	for (uint16_t i = 0; i < len; i++) {
 
 		Track track;
-		file >> track;
+		fileBuffer >> track;
 		project.tracks.push_back(track);
 
 		// Set project isolated track ptr
@@ -171,6 +174,5 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 		}
 	}
 
-	file.close();
 	return project;
 }

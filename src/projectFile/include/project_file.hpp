@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <cstdint>
 #include <vector>
@@ -12,14 +13,14 @@ namespace ProjectFileFormat {
 		uint8_t month;
 		uint16_t year;
 	};
-	std::fstream& operator>>(std::fstream &fs, Date &date);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Date &date);
 
 	struct Audio {
 
 		uint16_t id;
 		std::string fileName;
 	};
-	std::fstream& operator>>(std::fstream &fs, Audio &audio);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Audio &audio);
 
 	// Sample
 	struct Sample {
@@ -28,7 +29,7 @@ namespace ProjectFileFormat {
 		double startPosition;
 		double endPosition;
 	};
-	std::fstream& operator>>(std::fstream &fs, Sample &sample);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Sample &sample);
 
 	// Sample-Track Type
 	struct Track {
@@ -40,7 +41,7 @@ namespace ProjectFileFormat {
 
 		std::vector<Sample> samples;
 	};
-	std::fstream& operator>>(std::fstream &fs, Track &track);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Track &track);
 
 	struct Project {
 
