@@ -3,41 +3,41 @@
 #include <fstream>
 #include <format>
 
-static ProjectFileFormat::Project project;
+static ProjectFile::Project project;
 
-std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Date &date) {
+std::basic_istream<char>& ProjectFile::operator>>(std::basic_istream<char> &s, Date &date) {
 
-	fs.read(reinterpret_cast<char*>(&date.day), sizeof(uint8_t));
-	fs.read(reinterpret_cast<char*>(&date.month), sizeof(uint8_t));
-	fs.read(reinterpret_cast<char*>(&date.year), sizeof(uint16_t));
-	return fs;
+	s.read(reinterpret_cast<char*>(&date.day), sizeof(uint8_t));
+	s.read(reinterpret_cast<char*>(&date.month), sizeof(uint8_t));
+	s.read(reinterpret_cast<char*>(&date.year), sizeof(uint16_t));
+	return s;
 }
 
-std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Audio &audio) {
+std::basic_istream<char>& ProjectFile::operator>>(std::basic_istream<char> &s, Audio &audio) {
 
 	// len aux
 	uint16_t len;
 
 	// Get ID
-	fs.read(reinterpret_cast<char*>(&audio.id), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&audio.id), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", audio.id);
 
 	// Get filename
-	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	audio.fileName.resize(len);
-	fs.read(audio.fileName.data(), len);
+	s.read(audio.fileName.data(), len);
 	std::cout << std::format("FileName: {}\n", audio.fileName);
 
-	return fs;
+	return s;
 }
 
-std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Sample &sample) {
+std::basic_istream<char>& ProjectFile::operator>>(std::basic_istream<char> &s, Sample &sample) {
 
 	// len aux
 	uint16_t len;
 
 	// Get Audio ID
-	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", len);
 	sample.fileId = nullptr;
 
@@ -51,54 +51,54 @@ std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char>
 	}
 
 	// Get Start Position
-	fs.read(reinterpret_cast<char*>(&sample.startPosition), sizeof(double));
+	s.read(reinterpret_cast<char*>(&sample.startPosition), sizeof(double));
 	std::cout << std::format("SP: {:f}\n", sample.startPosition);
 
 	// Get End Position
-	fs.read(reinterpret_cast<char*>(&sample.endPosition), sizeof(double));
+	s.read(reinterpret_cast<char*>(&sample.endPosition), sizeof(double));
 	std::cout << std::format("SP: {:f}\n\n\n", sample.endPosition);
 
-	return fs;
+	return s;
 }
 
-std::basic_istream<char>& ProjectFileFormat::operator>>(std::basic_istream<char> &fs, Track &track) {
+std::basic_istream<char>& ProjectFile::operator>>(std::basic_istream<char> &s, Track &track) {
 
 	// len aux
 	uint16_t len;
 
 	// Get ID
-	fs.read(reinterpret_cast<char*>(&track.id), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&track.id), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", track.id);
 
 	// Get name
-	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	track.name.resize(len);
-	fs.read(track.name.data(), len);
+	s.read(track.name.data(), len);
 	std::cout << std::format("TrackName: {}\n", track.name);
 
 	// Get panning
-	fs.read(reinterpret_cast<char*>(&track.panning), sizeof(int8_t));
+	s.read(reinterpret_cast<char*>(&track.panning), sizeof(int8_t));
 	std::cout << std::format("Panning: {:d}\n", track.panning);
 
 	// Get volume
-	fs.read(reinterpret_cast<char*>(&track.volume), sizeof(double));
+	s.read(reinterpret_cast<char*>(&track.volume), sizeof(double));
 	std::cout << std::format("Volume: {:f}\n\n", track.volume);
 
 	// Get total samples
-	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
+	s.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total samples: {:d}\n\n", len);
 
 	for (uint16_t i = 0; i < len; i++) {
 
 		Sample sample;
-		fs >> sample;
+		s >> sample;
 		track.samples.push_back(sample);
 	}
 
-	return fs;
+	return s;
 }
 
-ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fileName) {
+ProjectFile::Project ProjectFile::loadProject(const std::string &fileName) {
 
 	// len aux
 	uint16_t len;

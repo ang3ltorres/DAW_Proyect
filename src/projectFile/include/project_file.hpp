@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace ProjectFileFormat {
+namespace ProjectFile {
 
 	struct Date {
 
@@ -13,14 +13,14 @@ namespace ProjectFileFormat {
 		uint8_t month;
 		uint16_t year;
 	};
-	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Date &date);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &s, Date &date);
 
 	struct Audio {
 
 		uint16_t id;
 		std::string fileName;
 	};
-	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Audio &audio);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &s, Audio &audio);
 
 	// Sample
 	struct Sample {
@@ -29,7 +29,7 @@ namespace ProjectFileFormat {
 		double startPosition;
 		double endPosition;
 	};
-	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Sample &sample);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &s, Sample &sample);
 
 	// Sample-Track Type
 	struct Track {
@@ -41,7 +41,7 @@ namespace ProjectFileFormat {
 
 		std::vector<Sample> samples;
 	};
-	std::basic_istream<char>& operator>>(std::basic_istream<char> &fs, Track &track);
+	std::basic_istream<char>& operator>>(std::basic_istream<char> &s, Track &track);
 
 	struct Project {
 
