@@ -24,10 +24,11 @@ namespace ProjectFileFormat {
 	// Sample
 	struct Sample {
 
-		Audio &fileId; // Reference to the "AudioReference"
+		Audio *fileId; // Reference to the "AudioReference"
 		double startPosition;
 		double endPosition;
 	};
+	std::fstream& operator>>(std::fstream &fs, Sample &sample);
 
 	// Sample-Track Type
 	struct Track {

@@ -1,7 +1,9 @@
-#include <../include/project_file.hpp>
+#include <project_file.hpp>
 #include <iostream>
 #include <fstream>
 #include <format>
+
+static ProjectFileFormat::Project project;
 
 std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Date &date) {
 
@@ -29,6 +31,36 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Audio &audio) {
 	return fs;
 }
 
+std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Sample &sample) {
+
+	// len aux
+	uint16_t len;
+
+	// Get Audio ID
+	fs.read(reinterpret_cast<char*>(&len), 2);
+	std::cout << std::format("ID: {:d}\n", len);
+	sample.fileId = nullptr;
+
+	for (uint16_t i = 0; i < len; i++) {
+
+		if (project.audios[i].id == len) {
+
+			sample.fileId = project.audios.data() + i;
+			std::cout << std::format("Audio name: {:s}\n", sample.fileId->fileName);
+		}
+	}
+
+	// Get Start Position
+	fs.read(reinterpret_cast<char*>(&sample.startPosition), 8);
+	std::cout << std::format("SP: {:f}\n", sample.startPosition);
+
+	// Get End Position
+	fs.read(reinterpret_cast<char*>(&sample.endPosition), 8);
+	std::cout << std::format("SP: {:f}\n\n\n", sample.endPosition);
+
+	return fs;
+}
+
 std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Track &track) {
 
 	// len aux
@@ -52,16 +84,21 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Track &track) {
 	fs.read(reinterpret_cast<char*>(&track.volume), 8);
 	std::cout << std::format("Volume: {:f}\n\n", track.volume);
 
-	// Get all samples
-	// TODO
+	// Get total samples
+	fs.read(reinterpret_cast<char*>(&len), 2);
+	std::cout << std::format("Total samples: {:d}\n\n", len);
+
+	for (uint16_t i = 0; i < len; i++) {
+
+		Sample sample;
+		fs >> sample;
+		track.samples.push_back(sample);
+	}
 
 	return fs;
 }
 
 ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fileName) {
-
-	// Project
-	Project project;
 
 	// len aux
 	uint16_t len;
