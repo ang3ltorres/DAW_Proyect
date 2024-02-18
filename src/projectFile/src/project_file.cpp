@@ -7,9 +7,9 @@ static ProjectFileFormat::Project project;
 
 std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Date &date) {
 
-	fs.read(reinterpret_cast<char*>(&date.day), 1);
-	fs.read(reinterpret_cast<char*>(&date.month), 1);
-	fs.read(reinterpret_cast<char*>(&date.year), 2);
+	fs.read(reinterpret_cast<char*>(&date.day), sizeof(uint8_t));
+	fs.read(reinterpret_cast<char*>(&date.month), sizeof(uint8_t));
+	fs.read(reinterpret_cast<char*>(&date.year), sizeof(uint16_t));
 	return fs;
 }
 
@@ -19,11 +19,11 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Audio &audio) {
 	uint16_t len;
 
 	// Get ID
-	fs.read(reinterpret_cast<char*>(&audio.id), 2);
+	fs.read(reinterpret_cast<char*>(&audio.id), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", audio.id);
 
 	// Get filename
-	fs.read(reinterpret_cast<char*>(&len), 2);
+	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	audio.fileName.resize(len);
 	fs.read(audio.fileName.data(), len);
 	std::cout << std::format("FileName: {}\n", audio.fileName);
@@ -37,7 +37,7 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Sample &sample) {
 	uint16_t len;
 
 	// Get Audio ID
-	fs.read(reinterpret_cast<char*>(&len), 2);
+	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", len);
 	sample.fileId = nullptr;
 
@@ -51,11 +51,11 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Sample &sample) {
 	}
 
 	// Get Start Position
-	fs.read(reinterpret_cast<char*>(&sample.startPosition), 8);
+	fs.read(reinterpret_cast<char*>(&sample.startPosition), sizeof(double));
 	std::cout << std::format("SP: {:f}\n", sample.startPosition);
 
 	// Get End Position
-	fs.read(reinterpret_cast<char*>(&sample.endPosition), 8);
+	fs.read(reinterpret_cast<char*>(&sample.endPosition), sizeof(double));
 	std::cout << std::format("SP: {:f}\n\n\n", sample.endPosition);
 
 	return fs;
@@ -67,25 +67,25 @@ std::fstream& ProjectFileFormat::operator>>(std::fstream &fs, Track &track) {
 	uint16_t len;
 
 	// Get ID
-	fs.read(reinterpret_cast<char*>(&track.id), 2);
+	fs.read(reinterpret_cast<char*>(&track.id), sizeof(uint16_t));
 	std::cout << std::format("ID: {:d}\n", track.id);
 
 	// Get name
-	fs.read(reinterpret_cast<char*>(&len), 2);
+	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	track.name.resize(len);
 	fs.read(track.name.data(), len);
 	std::cout << std::format("TrackName: {}\n", track.name);
 
 	// Get panning
-	fs.read(reinterpret_cast<char*>(&track.panning), 1);
+	fs.read(reinterpret_cast<char*>(&track.panning), sizeof(int8_t));
 	std::cout << std::format("Panning: {:d}\n", track.panning);
 
 	// Get volume
-	fs.read(reinterpret_cast<char*>(&track.volume), 8);
+	fs.read(reinterpret_cast<char*>(&track.volume), sizeof(double));
 	std::cout << std::format("Volume: {:f}\n\n", track.volume);
 
 	// Get total samples
-	fs.read(reinterpret_cast<char*>(&len), 2);
+	fs.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total samples: {:d}\n\n", len);
 
 	for (uint16_t i = 0; i < len; i++) {
@@ -115,9 +115,9 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 		std::cout << "Error!!\n";
 
 	// Get version
-	file.read(reinterpret_cast<char*>(&project.major), 1);
-	file.read(reinterpret_cast<char*>(&project.minor), 1);
-	file.read(reinterpret_cast<char*>(&project.patch), 1);
+	file.read(reinterpret_cast<char*>(&project.major), sizeof(uint8_t));
+	file.read(reinterpret_cast<char*>(&project.minor), sizeof(uint8_t));
+	file.read(reinterpret_cast<char*>(&project.patch), sizeof(uint8_t));
 	std::cout << std::format("{:d}.{:d}.{:d}\n", project.major, project.minor, project.patch);
 
 	// Get creation date
@@ -129,7 +129,7 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 	std::cout << std::format("Day: {:d}\nMonth: {:d}\nYear: {:d}\n\n", project.lastSavedDate.day, project.lastSavedDate.month, project.lastSavedDate.year);
 
 	// Get project name
-	file.read(reinterpret_cast<char*>(&len), 2);
+	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	project.name.resize(len);
 	file.read(project.name.data(), len);
 	std::cout << project.name << "\n";
@@ -138,11 +138,11 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 	project.soloTrack = nullptr;
 
 	uint16_t isolatedTrackID;
-	file.read(reinterpret_cast<char*>(&isolatedTrackID), 2);
+	file.read(reinterpret_cast<char*>(&isolatedTrackID), sizeof(uint16_t));
 	std::cout << std::format("Isolated Track ID: {:d}\n", isolatedTrackID);
 
 	// Get total audios
-	file.read(reinterpret_cast<char*>(&len), 2);
+	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total audios: {:d}\n", len);
 
 	for (uint16_t i = 0; i < len; i++) {
@@ -153,7 +153,7 @@ ProjectFileFormat::Project ProjectFileFormat::loadProject(const std::string &fil
 	}
 
 	// Get total tracks
-	file.read(reinterpret_cast<char*>(&len), 2);
+	file.read(reinterpret_cast<char*>(&len), sizeof(uint16_t));
 	std::cout << std::format("Total tracks: {:d}\n", len);
 
 	// Get each track
