@@ -166,6 +166,10 @@ int main(void)
     Pa_Terminate();
     printf("Test finished.\n");
 
+    for (size_t i = 0; i < TABLE_SIZE; i++) {
+        printf("%f\n", data.sine[i]);
+    }
+
     return err;
 error:
     Pa_Terminate();

@@ -10,6 +10,8 @@
 #include <audioDecoder/include/wav_decoder.hpp>
 
 
+
+
 std::vector<int> errors =
 {
 	(int)wavDecoder::Error::NOT_WAV_FILE,
@@ -101,6 +103,80 @@ void DecoderUnitTest::run()
 
 	printResult(assertion(testDecoder.getRawDataSize(), (decltype(testDecoder.getRawDataSize()))13641600),
 			    "Getting get raw data byte size");
+	PaError err;
+	err = Pa_Initialize();
+	if (err != paNoError) {
+		printResult(false, "portaudio initialization");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio initialization");
+
+	PaStream *test_stream;
+	paTestData test_data;
+
+	test_data.pcmData = testDecoder.getRawData();
+	test_data.rawDataSize = testDecoder.getRawDataSize() / testDecoder.getBlockAlign();
+
+
+	double frameRate = static_cast<double>(testDecoder.getByteRate()) /
+                       (testDecoder.getChannelCount() * testDecoder.getBitsPerSample());
+
+	err = Pa_OpenDefaultStream(&test_stream,
+						 0,
+						 testDecoder.getChannelCount(),
+						 paInt16,
+						 testDecoder.getSampleRate(),
+						 frameRate,
+						 wav_play_callback,
+						 &test_data);
+
+	if (err != paNoError) {
+		printResult(false, "portaudio open stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio open stream");
+
+	err = Pa_SetStreamFinishedCallback(test_stream, streamFinishedCallback);
+	if (err != paNoError) {
+		printResult(false, "portaudio set finish callback");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio set finish callback");
+
+	err = Pa_StartStream(test_stream);
+	if (err != paNoError) {
+		printResult(false, "portaudio start stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio set start stream");
+
+	while (!playbackFinished)
+	{
+	    Pa_Sleep(100);
+	}
+
+
+	err = Pa_StopStream(test_stream);
+	if (err != paNoError) {
+		printResult(false, "portaudio stop stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio stop stream");
+
+	err = Pa_CloseStream(test_stream);
+	if (err != paNoError) {
+		printResult(false, "portaudio close stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio close stream");
+
+	Pa_Terminate();
 }
 
 int main()
