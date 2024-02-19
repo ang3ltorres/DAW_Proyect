@@ -9,8 +9,37 @@
 #include <UT_format.hpp>
 #include <audioDecoder/include/wav_decoder.hpp>
 
+struct sampleInfo
+{
+	unsigned short pcm_value;
+	unsigned short channel_count;
+	unsigned short bits_per_sample;
+	unsigned short block_align;
+	unsigned int sample_rate;
+	unsigned int byte_rate;
+	unsigned int raw_data_size;
 
+	public:
+	sampleInfo (const unsigned short &pcm_value,
+				const unsigned short &channel_count,
+				const unsigned short &bits_per_sample,
+				const unsigned short &block_align,
+				const unsigned int &sample_rate,
+				const unsigned int &byte_rate,
+				const unsigned int &raw_data_size) :
+				pcm_value(pcm_value),
+				channel_count(channel_count),
+				bits_per_sample(bits_per_sample),
+				block_align(block_align),
+				sample_rate(sample_rate),
+				byte_rate(byte_rate),
+				raw_data_size(raw_data_size) {}
+};
 
+std::vector<sampleInfo> info_list = {
+	sampleInfo(1, 2, 16, 4, 44100, 176400, 13641600),
+	sampleInfo(1, 2, 24, 6, 44100, 264600, 61377750)
+};
 
 std::vector<int> errors =
 {
@@ -30,7 +59,8 @@ std::vector files {
 	"./unit_tests/test_files/audioFile/bad_ex_sample1.wav",
 	"./unit_tests/test_files/audioFile/bad_ex_sample2.wav",
 	"./unit_tests/test_files/audioFile/bad_ex_sample3.wav",
-	"./unit_tests/test_files/audioFile/ex_sample.wav"
+	"./unit_tests/test_files/audioFile/ex_sample.wav",
+	"./unit_tests/test_files/audioFile/allthesame.wav"
 };
 
 std::vector<std::string> messages = {
@@ -52,6 +82,7 @@ class DecoderUnitTest
 		template <typename t>
 		bool assertion(const t &result, const t &expected_result);
 		void printResult(bool, const std::string &message);
+		void assertInfo (const sampleInfo &sample_info);
 };
 
 template <typename t>
@@ -66,6 +97,30 @@ void DecoderUnitTest::printResult (bool result, const std::string &message)
 	std::cout << "=> Test [" << color::BOLD << message << color::ENDC << "] " << result_str << " \n";
 }
 
+void DecoderUnitTest::assertInfo (const sampleInfo &sample_info)
+{
+	printResult(assertion(testDecoder.PCM_value(), sample_info.pcm_value),
+				"Getting PCM value");
+
+	printResult(assertion(testDecoder.getChannelCount(), sample_info.channel_count),
+				"Getting channel count");
+
+	printResult(assertion(testDecoder.getSampleRate(), sample_info.sample_rate),
+		        "Getting sample rate");
+
+	printResult(assertion(testDecoder.getByteRate(), sample_info.byte_rate),
+		        "Getting byte rate");
+
+	printResult(assertion(testDecoder.getBlockAlign(), sample_info.block_align),
+		        "Getting block align");
+
+	printResult(assertion(testDecoder.getBitsPerSample(), sample_info.bits_per_sample),
+			    "Getting get bytes per sample");
+
+	printResult(assertion(testDecoder.getRawDataSize(), sample_info.raw_data_size),
+			    "Getting get raw data byte size");
+}
+
 void DecoderUnitTest::run()
 {
 	bool result = false;
@@ -76,33 +131,17 @@ void DecoderUnitTest::run()
 
 	int vector_size = files.size();
 
-	for (size_t i = 0; i < vector_size; i ++) {
+	for (size_t i = 0; i < vector_size - 1; i ++) {
 		printResult(assertion(testDecoder.loadFile(files[i]), errors[i]),
 					messages[i]);
 	}
 
 	std::cout << "\n---------\n" << color::output("Testing file header info", color::BOLD) << "\n---------\n";
 
-	printResult(assertion(testDecoder.PCM_value(), (decltype(testDecoder.PCM_value()))1),
-				"Getting PCM value");
+	assertInfo(info_list[0]);
 
-	printResult(assertion(testDecoder.getChannelCount(), (decltype(testDecoder.getChannelCount()))2),
-				"Getting channel count");
+	std::cout << "\n---------\n" << color::output("Testing file audio playback", color::BOLD) << "\n---------\n";
 
-	printResult(assertion(testDecoder.getSampleRate(), (decltype(testDecoder.getSampleRate()))44100),
-		        "Getting sample rate");
-
-	printResult(assertion(testDecoder.getByteRate(), (decltype(testDecoder.getByteRate()))176400),
-		        "Getting byte rate");
-
-	printResult(assertion(testDecoder.getBlockAlign(), (decltype(testDecoder.getBlockAlign()))4),
-		        "Getting block align");
-
-	printResult(assertion(testDecoder.getBitsPerSample(), (decltype(testDecoder.getBitsPerSample()))16),
-			    "Getting get bytes per sample");
-
-	printResult(assertion(testDecoder.getRawDataSize(), (decltype(testDecoder.getRawDataSize()))13641600),
-			    "Getting get raw data byte size");
 	PaError err;
 	err = Pa_Initialize();
 	if (err != paNoError) {
@@ -152,7 +191,7 @@ void DecoderUnitTest::run()
 		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
 		exit (err);
 	}
-	printResult(true, "portaudio set start stream");
+	printResult(true, "portaudio start stream");
 
 	while (!playbackFinished)
 	{
@@ -169,6 +208,87 @@ void DecoderUnitTest::run()
 	printResult(true, "portaudio stop stream");
 
 	err = Pa_CloseStream(test_stream);
+	if (err != paNoError) {
+		printResult(false, "portaudio close stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio close stream");
+
+	Pa_Terminate();
+
+	playbackFinished = 0;
+
+	testDecoder.loadFile(files[files.size() - 1]);
+
+	std::cout << "\n---------\n" << color::output("Testing 24 bit file info", color::BOLD) << "\n---------\n";
+
+	assertInfo(info_list[1]);
+
+	paTestData24 data_24bit;
+	data_24bit.rawDataSize = testDecoder.getRawDataSize();
+	data_24bit.pcmData = (unsigned int *)testDecoder.getRawData();
+
+	std::cout << "\n---------\n" << color::output("Testing 24 bit audio playback", color::BOLD) << "\n---------\n";
+
+	err = Pa_Initialize();
+	if (err != paNoError) {
+		printResult(false, "portaudio initialization");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio initialization");
+
+	PaStream *test_stream_24bit;
+
+	double frameRate24bit = static_cast<double>(testDecoder.getByteRate()) /
+                       (testDecoder.getChannelCount() * testDecoder.getBitsPerSample());
+
+	err = Pa_OpenDefaultStream(&test_stream_24bit,
+						 0,
+						 testDecoder.getChannelCount(),
+						 paInt32,
+						 testDecoder.getSampleRate(),
+						 frameRate24bit,
+						 wav_play_callback_24,
+						 &data_24bit);
+	if (err != paNoError) {
+		printResult(false, "portaudio open stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio open stream");
+
+	err = Pa_SetStreamFinishedCallback(test_stream_24bit, streamFinishedCallback);
+	if (err != paNoError) {
+		printResult(false, "portaudio set finish callback");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+
+	err = Pa_StartStream(test_stream);
+	if (err != paNoError) {
+		printResult(false, "portaudio start stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio start stream");
+
+	while (!playbackFinished)
+	{
+	    Pa_Sleep(100);
+	}
+
+
+	err = Pa_StopStream(test_stream_24bit);
+	if (err != paNoError) {
+		printResult(false, "portaudio stop stream");
+		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
+		exit (err);
+	}
+	printResult(true, "portaudio stop stream");
+
+	err = Pa_CloseStream(test_stream_24bit);
 	if (err != paNoError) {
 		printResult(false, "portaudio close stream");
 		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";
