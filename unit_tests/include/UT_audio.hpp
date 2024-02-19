@@ -50,16 +50,16 @@ static int wav_play_callback_24 (const void *inputBuffer, void *outputBuffer,
     static unsigned int *pcmData = test_Data->pcmData;
     PaStreamCallbackResult result = paContinue;
 
+    if (test_Data->rawDataSize <= 0) {
+        result = paComplete;
+    }
+
     for (size_t i = 0; i < framesPerBuffer; i ++) {
         *out++ = *pcmData++;
         *out++ = *pcmData++;
     }
 
     test_Data->rawDataSize = test_Data->rawDataSize - framesPerBuffer;
-
-    if (test_Data->rawDataSize <= 0) {
-        result = paComplete;
-    }
 
     return result;
 }

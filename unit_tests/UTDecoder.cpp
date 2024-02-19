@@ -38,7 +38,7 @@ struct sampleInfo
 
 std::vector<sampleInfo> info_list = {
 	sampleInfo(1, 2, 16, 4, 44100, 176400, 13641600),
-	sampleInfo(1, 2, 24, 6, 44100, 264600, 61377750)
+	sampleInfo(1, 2, 24, 6, 44100, 264600, 8599500)
 };
 
 std::vector<int> errors =
@@ -60,7 +60,7 @@ std::vector files {
 	"./unit_tests/test_files/audioFile/bad_ex_sample2.wav",
 	"./unit_tests/test_files/audioFile/bad_ex_sample3.wav",
 	"./unit_tests/test_files/audioFile/ex_sample.wav",
-	"./unit_tests/test_files/audioFile/allthesame.wav"
+	"./unit_tests/test_files/audioFile/ex_sample2.wav"
 };
 
 std::vector<std::string> messages = {
@@ -154,7 +154,7 @@ void DecoderUnitTest::run()
 	PaStream *test_stream;
 	paTestData test_data;
 
-	test_data.pcmData = testDecoder.getRawData();
+	test_data.pcmData = (unsigned short *)testDecoder.getRawData();
 	test_data.rawDataSize = testDecoder.getRawDataSize() / testDecoder.getBlockAlign();
 
 
@@ -215,8 +215,6 @@ void DecoderUnitTest::run()
 	}
 	printResult(true, "portaudio close stream");
 
-	Pa_Terminate();
-
 	playbackFinished = 0;
 
 	testDecoder.loadFile(files[files.size() - 1]);
@@ -226,12 +224,12 @@ void DecoderUnitTest::run()
 	assertInfo(info_list[1]);
 
 	paTestData24 data_24bit;
-	data_24bit.rawDataSize = testDecoder.getRawDataSize();
+	data_24bit.rawDataSize = testDecoder.getRawDataSize() / testDecoder.getBlockAlign();
 	data_24bit.pcmData = (unsigned int *)testDecoder.getRawData();
 
 	std::cout << "\n---------\n" << color::output("Testing 24 bit audio playback", color::BOLD) << "\n---------\n";
 
-	err = Pa_Initialize();
+
 	if (err != paNoError) {
 		printResult(false, "portaudio initialization");
 		std::cout << color::output("Error: ", color::BOLD) << Pa_GetErrorText(err) << "\n";

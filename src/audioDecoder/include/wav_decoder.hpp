@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <typeinfo>
+#include <unistd.h>
 
 class wavDecoder {
     public:
@@ -30,8 +31,7 @@ class wavDecoder {
         unsigned short getBlockAlign () const;
         unsigned short getBitsPerSample () const;
         unsigned int getByteRate () const;
-        int *getChannelData (const size_t &) const;
-        unsigned short *getRawData () const;
+        void *getRawData () const;
         unsigned int getRawDataSize () const;
         enum Error {
             NO_ERROR = 0,
@@ -59,7 +59,8 @@ class wavDecoder {
         unsigned int byteRate;
 
 
-        unsigned short *rawData;
+        unsigned short *rawData16bit;
+        unsigned int *rawData24bit;
         unsigned int rawDataSize;
         char *buffer;
         std::string filePath;
@@ -76,6 +77,7 @@ class wavDecoder {
         inline t _getTypeVal(char *);
         inline void _cleanBuffer();
         inline void _cleanRawData();
+        void _get24bitRawData(int &);
         void _offsetBuffer(const size_t &,unsigned int &, int &);
         void _offsetCharray(char *&, const size_t &, unsigned int &, int &);
        /*
