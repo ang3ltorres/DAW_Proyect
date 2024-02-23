@@ -182,6 +182,9 @@ void DecoderUnitTest::run()
 {
 	bool result = false;
 
+	PaError err;
+	err = Pa_Initialize();
+
 	std::cout << "---------\n" << color::output("Testing loadFile error codes", color::BOLD) << "\n---------\n";
 
 	// std::vector<std::vector<std::string>::iterator> it = {errors.begin(), files.begin(), messages.begin()};
@@ -199,8 +202,6 @@ void DecoderUnitTest::run()
 
 	std::cout << "\n---------\n" << color::output("Testing file audio playback", color::BOLD) << "\n---------\n";
 
-	PaError err;
-	err = Pa_Initialize();
 	if (paNoError == err) {
 		err = playAudio<unsigned short>(testDecoder, err);
 	}
