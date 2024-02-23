@@ -12,54 +12,36 @@ typedef struct {
     int rawDataSize;
 } paTestData24;
 
+template <typename t>
+struct PaData {
+    int dataSize;
+    t *pcmData;
+};
+
 volatile int playbackFinished = 0;
 
-static int wav_play_callback (const void *inputBuffer, void *outputBuffer,
+template <typename t>
+static int wPlayCallback  (const void *inputBuffer, void *outputBuffer,
                               unsigned long framesPerBuffer,
                               const PaStreamCallbackTimeInfo *timeInfo,
                               PaStreamCallbackFlags statusFlags,
-                              void *userData) {
-
-    unsigned short *out = (unsigned short *)outputBuffer;
-    paTestData *test_Data = (paTestData *)userData;
-    static unsigned short *pcmData = test_Data->pcmData;
+                              void *userData)
+{
+    t *out = (t *)outputBuffer;
+    PaData<t> *test_data = (PaData<t> *)userData;
+    static t *pcmData = test_data->pcmData;
     PaStreamCallbackResult result = paContinue;
 
-    for (size_t i = 0; i < framesPerBuffer; i ++) {
+    for (size_t i = 0; i < framesPerBuffer && (test_data->dataSize > 0); i ++) {
         *out++ = *pcmData++;
         *out++ = *pcmData++;
     }
 
-    test_Data->rawDataSize = test_Data->rawDataSize - framesPerBuffer;
+    test_data->dataSize = test_data->dataSize - framesPerBuffer;
 
-    if (test_Data->rawDataSize <= 0) {
+    if (test_data->dataSize <= 0) {
         result = paComplete;
     }
-
-    return result;
-}
-
-static int wav_play_callback_24 (const void *inputBuffer, void *outputBuffer,
-                              unsigned long framesPerBuffer,
-                              const PaStreamCallbackTimeInfo *timeInfo,
-                              PaStreamCallbackFlags statusFlags,
-                              void *userData) {
-
-    unsigned int *out = (unsigned int *)outputBuffer;
-    paTestData24 *test_Data = (paTestData24 *)userData;
-    static unsigned int *pcmData = test_Data->pcmData;
-    PaStreamCallbackResult result = paContinue;
-
-    if (test_Data->rawDataSize <= 0) {
-        result = paComplete;
-    }
-
-    for (size_t i = 0; i < framesPerBuffer; i ++) {
-        *out++ = *pcmData++;
-        *out++ = *pcmData++;
-    }
-
-    test_Data->rawDataSize = test_Data->rawDataSize - framesPerBuffer;
 
     return result;
 }
